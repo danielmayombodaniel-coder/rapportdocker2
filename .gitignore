@@ -4,6 +4,9 @@ node_modules/
 # Environment variables
 .env.local
 .env
+.env.local.example
+.env.example
+.reportflow.env
 
 # Logs
 logs/
