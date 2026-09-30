@@ -1,0 +1,17 @@
+export const ERROR_CATEGORIES = Object.freeze([
+    'Exportateur manquant ou incorrect',
+    'Type d’emballage',
+    'Frais additionnels',
+    'ETA/ETD incohérentes',
+    'Valeur FOB',
+    'Fret de base',
+    'Assurance',
+    'Incoterm',
+    'Transitaire',
+    'Numéro de déclaration manquant',
+    'Déclaration introuvable dans SYGREM',
+    'Mauvais document joint',
+    'Dossier déjà validé',
+    'Duplicate',
+    'autre',
+]);
