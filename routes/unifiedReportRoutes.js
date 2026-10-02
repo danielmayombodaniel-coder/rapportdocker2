@@ -4,6 +4,30 @@ import { getDailyReportNotes, updateDailyReportNotes } from '../controllers/dail
 import { optionalAuth } from '../middleware/optionalAuth.js';
 
 const router = express.Router();
+const activeVisitors = new Map();
+const PRESENCE_TTL_MS = 45_000;
+
+const getActiveVisitorCount = () => {
+	const now = Date.now();
+	for (const [visitorId, lastSeen] of activeVisitors) {
+		if (now - lastSeen > PRESENCE_TTL_MS) activeVisitors.delete(visitorId);
+	}
+	return activeVisitors.size;
+};
+
+router.get('/presence', (_req, res) => {
+	res.json({ activeVisitors: getActiveVisitorCount() });
+});
+
+router.post('/presence', (req, res) => {
+	const { visitorId } = req.body || {};
+	if (typeof visitorId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(visitorId)) {
+		return res.status(400).json({ message: 'Identifiant de présence invalide.' });
+	}
+
+	activeVisitors.set(visitorId, Date.now());
+	return res.json({ activeVisitors: getActiveVisitorCount() });
+});
 
 /**
  * Route PUBLIQUE pour générer et télécharger le rapport unifié
