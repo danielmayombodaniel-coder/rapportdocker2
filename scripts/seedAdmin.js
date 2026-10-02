@@ -7,7 +7,7 @@ import { createUser } from '../services/userService.js';
 
 dotenv.config();
 
-const requiredVariables = ['ADMIN_TELEPHONE', 'ADMIN_PASSWORD'];
+const requiredVariables = ['ADMIN_IDENTIFIER', 'ADMIN_PASSWORD'];
 
 /**
  * Creates the first administrator when none exists.
@@ -15,32 +15,33 @@ const requiredVariables = ['ADMIN_TELEPHONE', 'ADMIN_PASSWORD'];
  * @returns {Promise<void>}
  */
 const seedAdmin = async () => {
-    const missing = requiredVariables.filter((name) => !process.env[name]);
-    if (missing.length > 0) {
-        throw new Error(`Variables manquantes : ${missing.join(', ')}. Ajoutez-les dans ReportflowBack/.env avant d'exécuter npm run seed:admin.`);
+    const configuredIdentifier = (process.env.ADMIN_IDENTIFIER ?? process.env.ADMIN_TELEPHONE ?? '').trim();
+    const configuredPassword = (process.env.ADMIN_PASSWORD ?? '').trim();
+
+    if (!configuredIdentifier || !configuredPassword) {
+        throw new Error('Variables manquantes : ADMIN_IDENTIFIER et ADMIN_PASSWORD. Ajoutez-les dans le .env du backend avant d\'exécuter npm run seed:admin.');
     }
 
     await connectDB();
-    const configuredTelephone = process.env.ADMIN_TELEPHONE.replace(/\s/g, '');
-    const existingConfiguredUser = await User.findOne({ telephone: configuredTelephone }).select('+passwordHash');
+    const existingConfiguredUser = await User.findOne({ telephone: configuredIdentifier }).select('+passwordHash');
 
     if (existingConfiguredUser) {
         existingConfiguredUser.profile = 'admin';
         existingConfiguredUser.status = 'active';
-        existingConfiguredUser.passwordHash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
+        existingConfiguredUser.passwordHash = await bcrypt.hash(configuredPassword, 12);
         await existingConfiguredUser.save();
-        console.log(`Le compte ${configuredTelephone} est maintenant administrateur.`);
+        console.log(`Le compte ${configuredIdentifier} est maintenant administrateur.`);
         return;
     }
 
     const admin = await createUser({
         nom: 'Administrateur',
         prenom: 'Principal',
-        telephone: process.env.ADMIN_TELEPHONE,
-        password: process.env.ADMIN_PASSWORD,
+        telephone: configuredIdentifier,
+        password: configuredPassword,
         profile: 'admin',
     });
-    console.log(`Compte admin créé pour le numéro ${admin.telephone}.`);
+    console.log(`Compte admin créé pour l'identifiant ${admin.telephone}.`);
 };
 
 try {

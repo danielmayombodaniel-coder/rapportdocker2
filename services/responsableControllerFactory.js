@@ -122,36 +122,42 @@ export const createResponsableController = ({ Model, summary, totals, extraStats
             const report = await Model.findById(req.params.id);
             if (!report) return res.status(404).json({ message: 'Rapport introuvable' });
 
-            // Les responsables peuvent modifier n'importe quel rapport de leur service
-            // Quel que soit son statut (draft, submitted, needs_correction, validated)
-            
-            // Mettre à jour tous les champs du rapport avec les données reçues
-            // On exclut les champs protégés qui ne doivent pas être modifiés directement
             const protectedFields = ['_id', 'id', '__v', 'createdAt', 'updatedAt', 'submittedBy', 'submittedAt'];
             const updateData = { ...req.body };
-            
-            // Supprimer les champs protégés
+
             protectedFields.forEach(field => {
                 delete updateData[field];
             });
 
-            // Appliquer les modifications
             Object.assign(report, updateData);
-            
-            // Si le rapport était en "needs_correction" et qu'on le modifie,
-            // on le remet en "submitted" pour indiquer qu'il est prêt à être revalidé
+
             if (report.status === 'needs_correction') {
                 report.status = 'submitted';
-                report.correction = undefined; // Supprimer la demande de correction
+                report.correction = undefined;
             }
 
-            // Enregistrer les modifications
             await report.save();
-            
-            return res.status(200).json({ 
+
+            return res.status(200).json({
                 message: 'Rapport modifié avec succès',
-                report 
+                report,
             });
+        } catch (error) {
+            return sendError(res, error);
+        }
+    },
+
+    remove: async (req, res) => {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(404).json({ message: 'Rapport introuvable' });
+        }
+
+        try {
+            const report = await Model.findById(req.params.id);
+            if (!report) return res.status(404).json({ message: 'Rapport introuvable' });
+
+            await report.deleteOne();
+            return res.status(200).json({ message: 'Rapport supprimé avec succès' });
         } catch (error) {
             return sendError(res, error);
         }

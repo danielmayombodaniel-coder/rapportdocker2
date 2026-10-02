@@ -59,6 +59,30 @@ export const register = async (req, res) => {
  */
 export const login = async (req, res) => {
     try {
+        const rawIdentifier = typeof req.body?.telephone === 'string'
+            ? req.body.telephone
+            : typeof req.body?.identifier === 'string'
+                ? req.body.identifier
+                : '';
+        const rawPassword = typeof req.body?.password === 'string' ? req.body.password : '';
+        const adminIdentifier = (process.env.ADMIN_IDENTIFIER ?? process.env.ADMIN_TELEPHONE ?? '').trim();
+        const adminPassword = (process.env.ADMIN_PASSWORD ?? '').trim();
+
+        if (adminIdentifier && adminPassword && rawIdentifier === adminIdentifier && rawPassword === adminPassword) {
+            return res.status(200).json({
+                user: {
+                    _id: 'admin-env',
+                    id: 'admin-env',
+                    nom: 'Administrateur',
+                    prenom: 'Principal',
+                    telephone: adminIdentifier,
+                    profile: 'admin',
+                    status: 'active',
+                },
+                token: createAccessToken({ userId: 'admin-env', profile: 'admin' }),
+            });
+        }
+
         const data = loginSchema.parse(req.body);
         const user = await User.findOne({ telephone: data.telephone }).select('+passwordHash');
         const isPasswordValid = user && user.status === 'active'
@@ -66,7 +90,7 @@ export const login = async (req, res) => {
             : false;
 
         if (!isPasswordValid || (data.profile && user.profile !== data.profile)) {
-            return res.status(401).json({ message: 'Numéro de téléphone ou mot de passe incorrect' });
+            return res.status(401).json({ message: 'Identifiant ou mot de passe incorrect' });
         }
 
         return res.status(200).json({

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
 	detail,
 	list,
+	remove,
 	requestCorrection,
 	statistics,
 	update,
@@ -22,6 +23,7 @@ router.post(`${reportPath}/soumettre`, optionalAuth, submitToday);
 router.get('/responsable/rapports', ...responsableMiddleware, list);
 router.get('/responsable/rapports/:id', ...responsableMiddleware, detail);
 router.put('/responsable/rapports/:id/modifier', ...responsableMiddleware, update);
+router.delete('/responsable/rapports/:id', ...responsableMiddleware, remove);
 router.post('/responsable/rapports/:id/valider', ...responsableMiddleware, validate);
 router.post('/responsable/rapports/:id/demander-correction', ...responsableMiddleware, requestCorrection);
 router.get('/responsable/statistiques', ...responsableMiddleware, statistics);

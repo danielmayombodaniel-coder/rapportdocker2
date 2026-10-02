@@ -1,26 +1,22 @@
 import { z } from 'zod';
-import { isValidPhone, normalizePhone } from '../utils/phone.js';
 import { PROFILES, PUBLIC_PROFILES } from '../utils/profiles.js';
 
+const normalizeIdentifier = (value) => {
+    if (value === undefined || value === null) return '';
+    return String(value).trim();
+};
+
 export const phoneSchema = z.preprocess(
-    normalizePhone,
-    z.string()
-        .min(1, 'Le numéro de téléphone est requis')
-        .refine(isValidPhone, 'Le numéro de téléphone ne doit contenir que des chiffres')
+    normalizeIdentifier,
+    z.string().min(1, 'Le champ identifiant est requis')
 );
 
 const optionalPhoneSchema = z.preprocess(
-    (value) => value === undefined ? undefined : normalizePhone(value),
-    z.string()
-        .min(1, 'Le numéro de téléphone est requis')
-        .refine(isValidPhone, 'Le numéro de téléphone ne doit contenir que des chiffres')
-        .optional()
+    (value) => value === undefined ? undefined : normalizeIdentifier(value),
+    z.string().min(1, 'Le champ identifiant est requis').optional()
 );
 
-// The password policy is centralized so register and login use the same rule.
-export const passwordSchema = z.string()
-    .length(4, 'Le mot de passe doit contenir exactement 4 chiffres')
-    .regex(/^\d{4}$/, 'Le mot de passe doit contenir exactement 4 chiffres');
+export const passwordSchema = z.string().min(1, 'Le mot de passe est requis');
 
 export const registerSchema = z.object({
     nom: z.string().trim().min(1, 'Le nom est requis'),
