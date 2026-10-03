@@ -10,6 +10,8 @@ import {
 } from '../controllers/controllerResponsableController.js';
 import { getToday, submitToday, updateToday } from '../controllers/controllerAgentController.js';
 import { optionalAuth } from '../middleware/optionalAuth.js';
+import { authenticate } from '../middleware/auth.js';
+import { requireProfile } from '../middleware/requireProfile.js';
 import { getSettingFor, updateSettingFor } from '../controllers/autoValidationController.js';
 
 const router = Router();
@@ -23,7 +25,7 @@ router.post(`${reportPath}/soumettre`, optionalAuth, submitToday);
 router.get('/responsable/rapports', ...responsableMiddleware, list);
 router.get('/responsable/rapports/:id', ...responsableMiddleware, detail);
 router.put('/responsable/rapports/:id/modifier', ...responsableMiddleware, update);
-router.delete('/responsable/rapports/:id', ...responsableMiddleware, remove);
+router.delete('/responsable/rapports/:id', authenticate, requireProfile('admin'), remove);
 router.post('/responsable/rapports/:id/valider', ...responsableMiddleware, validate);
 router.post('/responsable/rapports/:id/demander-correction', ...responsableMiddleware, requestCorrection);
 router.get('/responsable/statistiques', ...responsableMiddleware, statistics);
